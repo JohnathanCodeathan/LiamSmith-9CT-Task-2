@@ -42,6 +42,144 @@ With all that said,  instead  of turning to the iPad,  they can use our product,
 - Sensor response time: The sensor should react to an update in the users hand speed within 1 second or less.
 - Light efficiency: In the song phase, the notes should move down a level every 0.5 seconds, and the lights in the corner should light up within 0.5 seconds of a user input.
 ## Design
+### Flow Chart:
+
+![Here is a comprehensive flow chart for the design of most of the program ](IMAGE_FRIEND/FlowChart.png)
+
+### Psuedocode:
+ START CornerLights()
+
+    IF corner = 0
+        RedCornerLight = ON
+    ELSE IF corner = 1
+        YellowCornerLight = ON
+    ELSE IF corner = 2
+        GeenCornerLight = ON
+    ELSE
+        Display "The developer is a numpty this isnt supposed to happen"
+        END EVERYTHING    
+    END IF
+    Wait 1 Second
+    All Corner Lights = OFF
+    corner = 3
+END CornerLights()
+
+ START SENSOR()
+
+    WHILE finished is false
+        READ SENSOR
+        IF fingerspeed > x+5
+            modifier = modifier - 0.1
+        ELSE IF fingerspeed < x-5
+            modifer = modifier + 0.1
+        END IF
+        WAIT 1 second
+    ENDWHILE
+END SENSOR()
+
+START LIGHT()
+
+    WHILE finished is False
+        IF leftnoteneeded = TRUE
+            Top left light = ON
+            leftnoteneeded = false
+        ENDIF
+        IF rightnoteneeded = TRUE
+            Top Right light = ON
+            rightnotneeded = false
+        ENDIF
+        IF lightsinbottom = ON
+            Timing = 2
+            lightsinbottom = OFF
+        ENDIF
+        FOR current row = bottom row +1 TO top row STEP 1
+            IF lights in current row = ON
+                lights in current row -1 = ON
+                lights in current row = OFF
+            END IF
+            IF current row = Yellow
+                timing = 1
+            ELSE IF current row = Red
+                timing = 0
+            ELSE
+                DISPLAY "The developer is a numpty this isnt supposed to happen"
+                END EVERYTHING
+            END IF
+            WAIT 0.5 + modifier seconds
+        END FOR
+    ENDWHILE
+    END LIGHT()
+
+START Button()
+
+    WHILE FINISHED IS FALSE
+        Read Button
+        IF Button is pressed
+            IF timing = 0
+                corner = 0
+            ELSE IF timing = 1
+                corner = 1
+                closest yellow light = OFF
+                score = score + 1
+            ELSE IF timing = 2
+                corner = 2
+                score = score + 2
+            ELSE:
+                Display "The developer is a numpty this isnt supposed to happen"
+                END EVERYTHING
+            ENDIF
+        ENDIF
+            CornerLight()
+    ENDWHILE
+END Button()
+
+START Buzzer()
+
+    if SongID = 0
+        play Raiseupyourbat
+    elif SongID = 1
+        play Don't
+    elif SongID = 2
+        play FlowerMan
+    elif SongID = 3
+        play specialist
+    elif SongId = 4
+        play TianTian
+    else:
+        display "The developer is a numpty this isnt supposed to happen"
+END Buzzer()
+
+START Song()
+
+    START Buzzer() THREAD
+    START Lights() THREAD
+    START Sensor() THREAD
+    START Button() THREAD
+    WAIT FOR Buzzer() THREAD
+    WAIT FOR Lights() THREAD
+    finished? = True
+    Display score
+    WHILE Button is not pressed
+         READ Button
+    END WHILE
+END Song()
+
+START Menu()
+
+    WHILE Button is not pressed
+        READ potentiometer
+        READ Button
+    END WHILE
+    SongID = potentiometer angle / 72
+END Menu()
+
+START
+   
+    WHILE TRUE
+        MENU()
+        SONG()
+    ENDWHILE
+END
 
 ## Development and Integration
 
