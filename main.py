@@ -3,18 +3,29 @@ from machine import Pin, ADC
 import math
 import time
 import threading 
+import LilBirdy
+from LilBirdy import Neopixel
+import BiggestBird #Lil birdy, neopixel and biggest bird are functions for lorikeet, and the functions are located inside of the pico itself. I learnt how to operate this from 
 import sys #Mainly for stopping everything if the program doesnt want to coorperate respectfully
 '''Threading: Useful for running multiple functions SIMULTANEOUSLY
 Used to run button, sensor, lights, and buzzer functions at the same time.
 Source of Idea: Inbound Shovel (youtuber who is making a game on godot): https://youtu.be/44hfu7ELgVc?si=elyH6TVTryo967hW
 Implementation: Python Docs: https://docs.python.org/3/library/threading.html'''
+
 #Variables/prerequisites
 JohnButton = Pin(16, Pin.IN, Pin.PULL_DOWN)# Left Button
-JaneButton = Pin(28, Pin.IN, Pin.PULL_DOWN) # Right Button
+JaneButton = Pin(17, Pin.IN, Pin.PULL_DOWN) # Right Button
 PotentialMan = ADC(Pin(22)) #Potentiometer
+manypickles = 5
+pickles = Neopixel(manypickles, 0, 28, "GRB") #Set up for lorikeet
 MAHORAGA = 1.0 #Analog value of potentiometer
 Fin = False #If Level is finished
 score = 0
+rebt = (254, 0, 2)
+mellow = (255, 239, 1)
+suspicoussalmon = (252, 137, 119)
+geen = (155, 253, 113)
+ourple = (139, 18, 105)
 MaxScore = 100
 Songid = 5 
 '''Song Levels:
@@ -29,12 +40,13 @@ Conv = 182.05 #Converts analog to angle, good for potentiometer
 #Functions:
 
 def Menu():
+    pickles.brightness(0)
     while JohnButton.value() == 0 and JaneButton.value() == 0:
         MAHORAGA = PotentialMan.read_u16() #Checks potentiometer until button is not pressed
         SongId = math.floor((MAHORAGA/Conv)/72) #SongId is set to rounded down version of Mahoraga if it was in angular degrees
         if SongId == 0: #If you look at the markdown, the songid isn't in the while statement and the if statement is non-existent,  but this is because I would like the lights on the controller to light up as you move the potentiometer
             pass
-            #Lorikeet shenanigans i dont want to do today
+            #Lorikeet shenanigans i will be doing today
 '''How Menu works: 
 Repeated until any button is pressed:
 - Sets variable called mahoraga to get the analog input of the potentiometer
