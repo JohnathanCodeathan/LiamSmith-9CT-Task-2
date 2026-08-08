@@ -16,16 +16,29 @@ Implementation: Python Docs: https://docs.python.org/3/library/threading.html'''
 JohnButton = Pin(16, Pin.IN, Pin.PULL_DOWN)# Left Button
 JaneButton = Pin(17, Pin.IN, Pin.PULL_DOWN) # Right Button
 PotentialMan = ADC(Pin(22)) #Potentiometer
-manypickles = 5
+    #Lights
+JohnMellow = 0
+JohnRebt = 0
+JohnGeen = 0
+JaneMellow = 0
+JaneRebt = 0
+JaneGeen = 0
+manypickles = 5#Also setup for lorikeet
 pickles = Neopixel(manypickles, 0, 28, "GRB") #Set up for lorikeet
 MAHORAGA = 1.0 #Analog value of potentiometer
 Fin = False #If Level is finished
-score = 0
+Johntiming = 0 #Refers to the eligibility in scoring for the lights on John Buttons side
+Janetiming = 0 #Refers to the eligibility in scoring for the lights on Jane Buttons side
+corner = 0 #Tells corner lights what value to be 
+Johnreleased = False #Checks if the left button is released
+Janereleased = False#Checks if right button is released
+    #Colours
 rebt = (254, 0, 2)
 mellow = (255, 239, 1)
 suspicoussalmon = (252, 137, 119)
 geen = (155, 253, 113)
 ourple = (139, 18, 105)
+score = 0
 MaxScore = 100
 Songid = 5 
 '''Song Levels:
@@ -41,12 +54,22 @@ Conv = 182.05 #Converts analog to angle, good for potentiometer
 
 def Menu():
     pickles.brightness(0)
-    while JohnButton.value() == 0 and JaneButton.value() == 0:
+    while Johnreleased == False and Janereleased == False:
         MAHORAGA = PotentialMan.read_u16() #Checks potentiometer until button is not pressed
         SongId = math.floor((MAHORAGA/Conv)/72) #SongId is set to rounded down version of Mahoraga if it was in angular degrees
+        pickles.brightness(50)
         if SongId == 0: #If you look at the markdown, the songid isn't in the while statement and the if statement is non-existent,  but this is because I would like the lights on the controller to light up as you move the potentiometer
-            pass
-            #Lorikeet shenanigans i will be doing today
+            pickles.fill(ourple)
+        elif Songid == 1:
+            pickles.fill(rebt)
+        elif Songid == 2:
+            pickles.fill(geen)
+        elif Songid == 3:
+            pickles.fill(mellow)
+        elif Songid == 4:
+            pickles.fill(suspicoussalmon) #Lorikeet shenanigans i have completed today
+        else:
+            sys.exit("The dev did some math wrong this isn't supposed to happen")
 '''How Menu works: 
 Repeated until any button is pressed:
 - Sets variable called mahoraga to get the analog input of the potentiometer
@@ -56,6 +79,7 @@ Repeated until any button is pressed:
 def Song():
     global Fin
     Fin = False
+    pickles.brightness(0)
     #Setting Up Threads
     InsulatedClothing = threading.Thread(target= Sound, args=Songid)
     HeadLamp = threading.Thread(target=LIGHTS)
@@ -72,7 +96,7 @@ def Song():
     Fin = True
     print(f"Your score is {score}/{MaxScore}!")
     while True:
-        if JohnButton.value() == 1 or JaneButton.value() ==1:
+        if Johnreleased == True or Janereleased == True:
             break
 '''How Song Works:
 -Sets Fin to False and Global because it is important to reset it and let song change Fin
@@ -92,17 +116,100 @@ def CAMERA(): #Sensor
     pass
 
 def ACTION(): #Button
-    pass
+    global corner
+    while Fin == False:
+        if Johnreleased == True:
+            if Johntiming == 0:
+                corner = 0
+            elif Johntiming == 1:
+                corner = 1
+                score += 1
+                JohnMellow.value() = 0
+            elif Johntiming == 2:
+                corner = 2
+                score += 2
+                JohnGeen.value() = 0
+            else:
+                print("The developer is a numpty this isnt supposed to happen")
+                sys.exit()
+        if Janereleased == True:
+            if Janetiming == 0:
+                corner = 0
+            elif Janetiming == 1:
+                corner = 1
+                score += 1
+                JaneMellow.value() = 0
+            elif Janetiming == 2:
+                corner = 2
+                score += 2
+                JaneGeen.value() = 0
+            else:
+                print("The developer is a numpty this isnt supposed to happen")
+                sys.exit()        
+        WORSELIGHTS()
+'''How ACTION works:
+-sets corner, the variable that tracks what state the corner lights should be, to global
+then, while fin, the variable that tracks whether the song is finished or not, is false:
+-if the left button is released, set corner to it's timing value, add that to score, and turn off the corresponding light in the level (unless its red). If timing isn't 0, 1, or 2, shut down the program
+-repeat for right button
+-Run the Worselights function'''
 
 def WORSELIGHTS(): #Corner Lights
-    pass
+    pickles.brightness(50)
+    if corner == 0:
+        pickles.fill(rebt)
+    elif corner == 1:
+        pickles.fill(mellow)
+    elif corner == 2:
+        pickles.fill(geen)
+    else:
+        print("The developer is a numpty this isnt supposed to happen")
+        sys.exit()
+    corner = 3 #3= placeholder value
+    time.sleep(1)
+    pickles.brightness(0)
+'''How WORSELIGHTS works:
+-sets the brightness of the lorikeet to 50%
+-if corner = 0, turn the lorikeet leds red. If corner = 1, turn the lorikeet leds yellow. If corner =2, turn the lorikeet leds green. If corner = anything else, turn off program
+-Set corner to 3, the placeholder value
+-Wait 1 second
+-Set the lorikeets brightness to 0'''
 
 
-
-
+def RELEASETHECHECKER(): #Checks whether button was released to prevent inputs getting registered every frame the button is held down
+    global Johnreleased
+    global Janereleased
+    while True:
+        if JohnButton.value() == 1 and Johnpress == False: 
+            Johnpress = True
+            Johnreleased = False
+        elif JohnButton.value() == 0 and Johnpress == True:
+            Johnreleased = True
+            Johnpress = False
+        else:
+            Johnpress = False
+            Johnreleased = False
+        if JaneButton.value() == 1 and Janepress == False:
+            Janepress = True
+            Janereleased = False
+        elif JaneButton.value() == 0 and Janepress == True:
+            Janereleased = True
+            Janepress = False
+        else:
+            Janepress = False
+            Janereleased = False
+'''How RELEASETHECHECKER works:
+-Set Johnreleased and Janereleased(The variables that tell whether the button was released, rather than being held down or not being pressed at all) to global
+-forever, if the left button is pressed, while Johnpress is false, John press is now true and Johnreleased is false.
+  if the left button isn't pressed while Johnpress is true, Johnreleased is true and Johnpress is false
+  if any other combination of those two conditions is happening, Johnpress and John released are both false
+  and do the same for the right button, but with Janes instead of Johns'''
 #Main Stuff:
+collar = threading.Thread(target=RELEASETHECHECKER) #Thread for the improved button fix
+collar.start()
 while True:
     Menu()
     Song()
 ''' How this works:
+setting a thread for the function that checks whether the button was released or not and then
 Just a while loop that runs the menu and then the song. Not much else'''
