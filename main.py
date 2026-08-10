@@ -17,12 +17,12 @@ JohnButton = Pin(16, Pin.IN, Pin.PULL_DOWN)# Left Button
 JaneButton = Pin(17, Pin.IN, Pin.PULL_DOWN) # Right Button
 PotentialMan = ADC(Pin(22)) #Potentiometer
     #Lights
-JohnMellow = 0
-JohnRebt = 0
-JohnGeen = 0
-JaneMellow = 0
-JaneRebt = 0
-JaneGeen = 0
+JohnMellow = Pin(13, Pin.OUT)
+JohnRebt = Pin(12, Pin.OUT)
+JohnGeen = Pin(14, Pin.OUT)
+JaneMellow = Pin(10, Pin.OUT)
+JaneRebt = Pin(9, Pin.OUT)
+JaneGeen = Pin(11, Pin.OUT)
 manypickles = 5#Also setup for lorikeet
 pickles = Neopixel(manypickles, 0, 28, "GRB") #Set up for lorikeet
 MAHORAGA = 1.0 #Analog value of potentiometer
@@ -32,6 +32,8 @@ Janetiming = 0 #Refers to the eligibility in scoring for the lights on Jane Butt
 corner = 0 #Tells corner lights what value to be 
 Johnreleased = False #Checks if the left button is released
 Janereleased = False#Checks if right button is released
+JohnKneaded = False #Is a note in the left side needed
+JaneKneaded = False #Is a note in the right side needed
     #Colours
 rebt = (254, 0, 2)
 mellow = (255, 239, 1)
@@ -110,7 +112,23 @@ def Sound():
     pass
 
 def LIGHTS():
-    pass
+    global JaneKneaded
+    global JohnKneaded
+    global Johntiming
+    global Janetiming
+    while Fin == False:
+        if JohnKneaded == True:
+            JohnRebt.value() = 1
+            JohnKneaded = True
+        if JaneKneaded == True:
+            JaneRebt.value() = 1
+            JaneKneaded = True
+        if JohnGeen.value() ==1:
+            Johntiming = 2
+            JohnGeen.value() = 0
+        if JaneGeen.value() ==1:
+            Janetiming = 2
+            JaneGeen.value() = 0
 
 def CAMERA(): #Sensor
     pass
