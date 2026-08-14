@@ -1,5 +1,5 @@
 #Imports:
-from machine import Pin, ADC
+from machine import Pin, ADC, PWM
 import math
 import time
 import threading 
@@ -16,6 +16,7 @@ Implementation: Python Docs: https://docs.python.org/3/library/threading.html'''
 JohnButton = Pin(16, Pin.IN, Pin.PULL_DOWN)# Left Button
 JaneButton = Pin(17, Pin.IN, Pin.PULL_DOWN) # Right Button
 PotentialMan = ADC(Pin(22)) #Potentiometer
+HATE = PWM(Pin(18)) #Buzzer
     #Lights
 JohnMellow = Pin(10, Pin.OUT)
 JohnRebt = Pin(11, Pin.OUT)
@@ -121,35 +122,36 @@ def LIGHTS():
     while Fin == False:
         Johntiming = []
         Janetiming = []
-        if JohnGeen.value() ==1: #Order of the if statements in this line and below is non-negotiable because if we arrange it any other way, when say a yellow light is checked and the note goes to green, if we then check green, the previous note from the yellow will interfere with the check.
+        if JohnGeen.value(1) == True: #Order of the if statements in this line and below is non-negotiable because if we arrange it any other way, when say a yellow light is checked and the note goes to green, if we then check green, the previous note from the yellow will interfere with the check.
             Johntiming.append(0)
-            JohnGeen.value() = 0
-        if JaneGeen.value() ==1:
-            Janetiming.append(0)
-            JaneGeen.value() = 0
-        if JohnMellow.value() ==1:
+            JohnGeen.value(0)
+        if JohnMellow.value(1) == True:
             Johntiming.append(2)
-            JohnMellow.value() = 0
-            JohnGeen.value() = 1
-        if JaneMellow.value() ==1:
-            Janetiming.append(2)
-            JaneGeen.value() = 1
-            JaneMellow.value() = 0
-        if JohnRebt.value() ==1:
+            JohnMellow.value(0)
+            JohnGeen.value(1)
+        if JohnRebt.value(1):
             Johntiming.append(1)
-            JohnMellow.value() = 1
-            JohnRebt.value() = 0
-        if JaneRebt.value() ==1:
-            Janetiming.append(1)
-            JaneRebt.value() = 0
-            JaneMellow.value() = 1
+            JohnMellow.value(1)
+            JohnRebt.value(0)
         if JohnKneaded == True:
-            JohnRebt.value() = 1
-            JohnKneaded = False
+            JohnRebt.value(1)
+            JohnKneaded = False           
+        time.sleep(0.25+mod)  
+        if JaneGeen.value(1) == True:
+            Janetiming.append(0)
+            JaneGeen.value(0)
+        if JaneMellow.value(1) == True:
+            Janetiming.append(2)
+            JaneGeen.value(1)
+            JaneMellow.value(0)
+        if JaneRebt.value(1) == True:
+            Janetiming.append(1)
+            JaneRebt.value(0)
+            JaneMellow.value(1)
         if JaneKneaded == True:
-            JaneRebt.value() = 1
-            JaneKneaded = False            
-        time.sleep(0.5+mod)           
+            JaneRebt.value(1)
+            JaneKneaded = False
+        time.sleep(0.25+mod)                     
 '''How LIGHTS works: 
 - Declares JohnKneaded, JaneKneaded (The variables that track whether a note is needed for the red lights in the two columns), Johntiming and Janetiming (The lists that track the scoring eligibility) to global
 Repeated until the level is finished:
@@ -172,11 +174,11 @@ def ACTION(): #Button
             elif max(Johntiming) == 1:
                 corner = 1
                 score += 1
-                JohnMellow.value() = 0
+                JohnMellow.value(0)
             elif max(Johntiming) == 2:
                 corner = 2
                 score += 2
-                JohnGeen.value() = 0
+                JohnGeen.value(0)
             else:
                 print("The developer is a numpty this isnt supposed to happen")
                 sys.exit()
@@ -186,11 +188,11 @@ def ACTION(): #Button
             elif max(Janetiming) == 1:
                 corner = 1
                 score += 1
-                JaneMellow.value() = 0
+                JaneMellow.value(0)
             elif max(Janetiming) == 2:
                 corner = 2
                 score += 2
-                JaneGeen.value() = 0
+                JaneGeen.value(0)
             else:
                 print("The developer is a numpty this isnt supposed to happen")
                 sys.exit()        
@@ -228,19 +230,19 @@ def RELEASETHECHECKER(): #Checks whether button was released to prevent inputs g
     global Johnreleased
     global Janereleased
     while True:
-        if JohnButton.value() == 1 and Johnpress == False: 
+        if JohnButton.value(1) == True and Johnpress == False: 
             Johnpress = True
             Johnreleased = False
-        elif JohnButton.value() == 0 and Johnpress == True:
+        elif JohnButton.value(0) == True and Johnpress == True:
             Johnreleased = True
             Johnpress = False
         else:
             Johnpress = False
             Johnreleased = False
-        if JaneButton.value() == 1 and Janepress == False:
+        if JaneButton.value(1) == True and Janepress == False:
             Janepress = True
             Janereleased = False
-        elif JaneButton.value() == 0 and Janepress == True:
+        elif JaneButton.value(0) == True and Janepress == True:
             Janereleased = True
             Janepress = False
         else:
