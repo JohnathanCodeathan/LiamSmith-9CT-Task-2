@@ -1,16 +1,13 @@
 #Imports:
 from machine import Pin, ADC, PWM
 import math
-import time
+import uasyncio as uas
 import threading 
+import time
 import LilBirdy
 from LilBirdy import Neopixel
 import BiggestBird #Lil birdy, neopixel and biggest bird are functions for lorikeet, and the functions are located inside of the pico itself. I learnt how to operate this from 
 import sys #Mainly for stopping everything if the program doesnt want to coorperate respectfully
-'''Threading: Useful for running multiple functions SIMULTANEOUSLY
-Used to run button, sensor, lights, and buzzer functions at the same time.
-Source of Idea: Inbound Shovel (youtuber who is making a game on godot): https://youtu.be/44hfu7ELgVc?si=elyH6TVTryo967hW
-Implementation: Python Docs: https://docs.python.org/3/library/threading.html'''
 
 #Variables/prerequisites
 JohnButton = Pin(16, Pin.IN, Pin.PULL_DOWN)# Left Button
@@ -27,7 +24,6 @@ JaneGeen = Pin(12, Pin.OUT)
 mod = 0.0
 manypickles = 5#Also setup for lorikeet
 pickles = Neopixel(manypickles, 0, 28, "GRB") #Set up for lorikeet
-MAHORAGA = 1.0 #Analog value of potentiometer
 Fin = False #If Level is finished
 Johntiming = [] #Refers to the eligibility in scoring for the lights on John Buttons side
 Janetiming = [] #Refers to the eligibility in scoring for the lights on Jane Buttons side
@@ -45,7 +41,7 @@ geen = (155, 253, 113) #Green
 ourple = (139, 18, 105) #Purple
 score = 0
 MaxScore = 100
-Songid = 5 
+SongId = 5 
 '''Song Levels:
 - 0 = Raise up your bat by Toby Fox (Deltarune)
 - 1 = Don't by Locus Juice, Azumi Takahashi and Atlus Sound Team (Persona 3 Reload)
@@ -65,13 +61,13 @@ def Menu():
         pickles.brightness(50)
         if SongId == 0: #If you look at the markdown, the songid isn't in the while statement and the if statement is non-existent,  but this is because I would like the lights on the controller to light up as you move the potentiometer
             pickles.fill(ourple)
-        elif Songid == 1:
+        elif SongId == 1:
             pickles.fill(rebt)
-        elif Songid == 2:
+        elif SongId == 2:
             pickles.fill(geen)
-        elif Songid == 3:
+        elif SongId == 3:
             pickles.fill(mellow)
-        elif Songid == 4:
+        elif SongId == 4 or SongId == 5:
             pickles.fill(suspicoussalmon) #Lorikeet shenanigans i have completed today
         else:
             sys.exit("The dev did some math wrong this isn't supposed to happen")
@@ -85,19 +81,7 @@ def Song():
     global Fin
     Fin = False
     pickles.brightness(0)
-    #Setting Up Threads
-    InsulatedClothing = threading.Thread(target= Sound, args=Songid)
-    HeadLamp = threading.Thread(target=LIGHTS)
-    CameraCover = threading.Thread(target=CAMERA)
-    SewingMachine = threading.Thread(target=ACTION)
-    #Starting Threads
-    InsulatedClothing.start()
-    HeadLamp.start()
-    CameraCover.start()
-    SewingMachine.start()
-    #Waiting for threads
-    InsulatedClothing.join()
-    HeadLamp.join()
+    uas.run(main())
     Fin = True
     print(f"Your score is {score}/{MaxScore}!")
     while True:
@@ -114,7 +98,7 @@ def Song():
 def Sound():
     pass
 
-def LIGHTS():
+async def LIGHTS():
     global JaneKneaded
     global JohnKneaded
     global Johntiming
@@ -122,36 +106,36 @@ def LIGHTS():
     while Fin == False:
         Johntiming = []
         Janetiming = []
-        if JohnGeen.value(1) == True: #Order of the if statements in this line and below is non-negotiable because if we arrange it any other way, when say a yellow light is checked and the note goes to green, if we then check green, the previous note from the yellow will interfere with the check.
+        if JohnGeen.value() == 1: #Order of the if statements in this line and below is non-negotiable because if we arrange it any other way, when say a yellow light is checked and the note goes to green, if we then check green, the previous note from the yellow will interfere with the check.
             Johntiming.append(0)
             JohnGeen.value(0)
-        if JohnMellow.value(1) == True:
+        if JohnMellow.value() == 1:
             Johntiming.append(2)
             JohnMellow.value(0)
             JohnGeen.value(1)
-        if JohnRebt.value(1):
+        if JohnRebt.value() == 1:
             Johntiming.append(1)
             JohnMellow.value(1)
             JohnRebt.value(0)
         if JohnKneaded == True:
             JohnRebt.value(1)
             JohnKneaded = False           
-        time.sleep(0.25+mod)  
-        if JaneGeen.value(1) == True:
+        await uas.sleep(0.25+mod)  
+        if JaneGeen.value() == 1:
             Janetiming.append(0)
             JaneGeen.value(0)
-        if JaneMellow.value(1) == True:
+        if JaneMellow.value() == 1:
             Janetiming.append(2)
             JaneGeen.value(1)
             JaneMellow.value(0)
-        if JaneRebt.value(1) == True:
+        if JaneRebt.value() == 1:
             Janetiming.append(1)
             JaneRebt.value(0)
             JaneMellow.value(1)
         if JaneKneaded == True:
             JaneRebt.value(1)
             JaneKneaded = False
-        time.sleep(0.25+mod)                     
+        await uas.sleep(0.25+mod)                     
 '''How LIGHTS works: 
 - Declares JohnKneaded, JaneKneaded (The variables that track whether a note is needed for the red lights in the two columns), Johntiming and Janetiming (The lists that track the scoring eligibility) to global
 Repeated until the level is finished:
@@ -162,10 +146,10 @@ Repeated until the level is finished:
 - Repeat for the right yellow light
 - If the left red light is on, add 1 to the list of timing values of the left side, turn off the left red light and turn on the right yellow light
 - Repeat for the right red light'''
-def CAMERA(): #Sensor
+async def CAMERA(): #Sensor
     pass
 
-def ACTION(): #Button
+async def ACTION(): #Button
     global corner
     while Fin == False:
         if Johnreleased == True:
@@ -196,7 +180,7 @@ def ACTION(): #Button
             else:
                 print("The developer is a numpty this isnt supposed to happen")
                 sys.exit()        
-        WORSELIGHTS()
+        uas.run(WORSELIGHTS())
 '''How ACTION works:
 -sets corner, the variable that tracks what state the corner lights should be, to global
 then, while fin, the variable that tracks whether the song is finished or not, is false:
@@ -204,7 +188,7 @@ then, while fin, the variable that tracks whether the song is finished or not, i
 -repeat for right button
 -Run the Worselights function'''
 
-def WORSELIGHTS(): #Corner Lights
+async def WORSELIGHTS(): #Corner Lights
     pickles.brightness(50)
     if corner == 0:
         pickles.fill(rebt)
@@ -216,7 +200,7 @@ def WORSELIGHTS(): #Corner Lights
         print("The developer is a numpty this isnt supposed to happen")
         sys.exit()
     corner = 3 #3= placeholder value
-    time.sleep(1)
+    await uas.sleep(1)
     pickles.brightness(0)
 '''How WORSELIGHTS works:
 -sets the brightness of the lorikeet to 50%
@@ -226,28 +210,29 @@ def WORSELIGHTS(): #Corner Lights
 -Set the lorikeets brightness to 0'''
 
 
-def RELEASETHECHECKER(): #Checks whether button was released to prevent inputs getting registered every frame the button is held down
+async def RELEASETHECHECKER(): #Checks whether button was released to prevent inputs getting registered every frame the button is held down
     global Johnreleased
     global Janereleased
     while True:
-        if JohnButton.value(1) == True and Johnpress == False: 
+        if JohnButton.value() == 1 and Johnpress == False: 
             Johnpress = True
             Johnreleased = False
-        elif JohnButton.value(0) == True and Johnpress == True:
+        elif JohnButton.value() == 0 and Johnpress == True:
             Johnreleased = True
             Johnpress = False
         else:
             Johnpress = False
             Johnreleased = False
-        if JaneButton.value(1) == True and Janepress == False:
+        if JaneButton.value() == 1 and Janepress == False:
             Janepress = True
             Janereleased = False
-        elif JaneButton.value(0) == True and Janepress == True:
+        elif JaneButton.value() == 0 and Janepress == True:
             Janereleased = True
             Janepress = False
         else:
             Janepress = False
             Janereleased = False
+        await uas.sleep_ms(75)
 '''How RELEASETHECHECKER works:
 -Set Johnreleased and Janereleased(The variables that tell whether the button was released, rather than being held down or not being pressed at all) to global
 -forever, if the left button is pressed, while Johnpress is false, John press is now true and Johnreleased is false.
@@ -255,8 +240,11 @@ def RELEASETHECHECKER(): #Checks whether button was released to prevent inputs g
   if any other combination of those two conditions is happening, Johnpress and John released are both false
   and do the same for the right button, but with Janes instead of Johns'''
 #Main Stuff:
-collar = threading.Thread(target=RELEASETHECHECKER) #Thread for the improved button fix
-collar.start()
+async def main():
+    uas.create_task(LIGHTS())
+    uas.create_task(CAMERA())
+    uas.create_task(ACTION())
+uas.run(RELEASETHECHECKER())
 while True:
     Menu()
     Song()
