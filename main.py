@@ -2,17 +2,19 @@
 from machine import Pin, ADC, PWM
 import math
 import uasyncio as uas
+'''So I realised threading doesn't work, with the help of google gemini.
+Then I did some more research and found uasyncio for micropython, which does the same thing, but instead of using multiple threads, which the pico doesn't have, all the background processes share one.
+Source: https://docs.micropython.org/en/v1.14/library/uasyncio.html'''
 import threading 
 import time
 import LilBirdy
-from LilBirdy import Neopixel
-import BiggestBird #Lil birdy, neopixel and biggest bird are functions for lorikeet, and the functions are located inside of the pico itself. I learnt how to operate this from 
+from LilBirdy import Neopixel#Lil birdy, neopixel and biggest bird are functions for lorikeet, and the functions are located inside of the pico itself. I learnt how to operate this from 
 import sys #Mainly for stopping everything if the program doesnt want to coorperate respectfully
 
 #Variables/prerequisites
 JohnButton = Pin(16, Pin.IN, Pin.PULL_DOWN)# Left Button
 JaneButton = Pin(17, Pin.IN, Pin.PULL_DOWN) # Right Button
-PotentialMan = ADC(Pin(22)) #Potentiometer
+PotentialMan = ADC(Pin(26)) #Potentiometer
 HATE = PWM(Pin(18)) #Buzzer
     #Lights
 JohnMellow = Pin(10, Pin.OUT)
@@ -82,7 +84,6 @@ def Song():
     Fin = False
     pickles.brightness(0)
     uas.run(main())
-    Fin = True
     print(f"Your score is {score}/{MaxScore}!")
     while True:
         if Johnreleased == True or Janereleased == True:
@@ -181,6 +182,7 @@ async def ACTION(): #Button
                 print("The developer is a numpty this isnt supposed to happen")
                 sys.exit()        
         uas.run(WORSELIGHTS())
+        await uas.sleep(0.07)
 '''How ACTION works:
 -sets corner, the variable that tracks what state the corner lights should be, to global
 then, while fin, the variable that tracks whether the song is finished or not, is false:
