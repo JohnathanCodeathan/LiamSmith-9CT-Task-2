@@ -57,7 +57,7 @@ Conv = 182.05 #Converts analog to angle, good for potentiometer
 
 def Menu():
     pickles.brightness(0)
-    while Johnreleased == False and Janereleased == False:
+    while JohnButton == 0 and JaneButton == 0:
         MAHORAGA = PotentialMan.read_u16() #Checks potentiometer until button is not pressed
         SongId = math.floor((MAHORAGA/Conv)/72) #SongId is set to rounded down version of Mahoraga if it was in angular degrees
         pickles.brightness(50)
@@ -86,7 +86,7 @@ def Song():
     uas.run(main())
     print(f"Your score is {score}/{MaxScore}!")
     while True:
-        if Johnreleased == True or Janereleased == True:
+        if JohnButton == 1 or JaneButton == 1:
             break
 '''How Song Works:
 -Sets Fin to False and Global because it is important to reset it and let song change Fin
@@ -153,7 +153,7 @@ async def CAMERA(): #Sensor
 async def ACTION(): #Button
     global corner
     while Fin == False:
-        if Johnreleased == True:
+        if JohnButton.value == 1:
             if max(Johntiming) == 0: #max returns the highest value from a list
                 corner = 0
             elif max(Johntiming) == 1:
@@ -167,7 +167,7 @@ async def ACTION(): #Button
             else:
                 print("The developer is a numpty this isnt supposed to happen")
                 sys.exit()
-        if Janereleased == True:
+        if JaneButton.value == 1:
             if max(Janetiming) == 0:
                 corner = 0
             elif max(Janetiming) == 1:
@@ -182,7 +182,7 @@ async def ACTION(): #Button
                 print("The developer is a numpty this isnt supposed to happen")
                 sys.exit()        
         uas.run(WORSELIGHTS())
-        await uas.sleep(0.07)
+        await uas.sleep(0.1)
 '''How ACTION works:
 -sets corner, the variable that tracks what state the corner lights should be, to global
 then, while fin, the variable that tracks whether the song is finished or not, is false:
@@ -210,43 +210,11 @@ async def WORSELIGHTS(): #Corner Lights
 -Set corner to 3, the placeholder value
 -Wait 1 second
 -Set the lorikeets brightness to 0'''
-
-
-async def RELEASETHECHECKER(): #Checks whether button was released to prevent inputs getting registered every frame the button is held down
-    global Johnreleased
-    global Janereleased
-    while True:
-        if JohnButton.value() == 1 and Johnpress == False: 
-            Johnpress = True
-            Johnreleased = False
-        elif JohnButton.value() == 0 and Johnpress == True:
-            Johnreleased = True
-            Johnpress = False
-        else:
-            Johnpress = False
-            Johnreleased = False
-        if JaneButton.value() == 1 and Janepress == False:
-            Janepress = True
-            Janereleased = False
-        elif JaneButton.value() == 0 and Janepress == True:
-            Janereleased = True
-            Janepress = False
-        else:
-            Janepress = False
-            Janereleased = False
-        await uas.sleep_ms(75)
-'''How RELEASETHECHECKER works:
--Set Johnreleased and Janereleased(The variables that tell whether the button was released, rather than being held down or not being pressed at all) to global
--forever, if the left button is pressed, while Johnpress is false, John press is now true and Johnreleased is false.
-  if the left button isn't pressed while Johnpress is true, Johnreleased is true and Johnpress is false
-  if any other combination of those two conditions is happening, Johnpress and John released are both false
-  and do the same for the right button, but with Janes instead of Johns'''
 #Main Stuff:
 async def main():
     uas.create_task(LIGHTS())
     uas.create_task(CAMERA())
     uas.create_task(ACTION())
-uas.run(RELEASETHECHECKER())
 while True:
     Menu()
     Song()

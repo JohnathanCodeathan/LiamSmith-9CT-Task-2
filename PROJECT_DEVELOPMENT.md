@@ -450,7 +450,7 @@ while True:
 setting a thread for the function that checks whether the button was released or not and then
 Just a while loop that runs the menu and then the song. Not much else'''
 ```
-- Notes: We got a few errors with this prototype, namely one just telling us to soft reboot and the other one telling us to reset our microbit and that something went wrong in Thonny's back end, I'll check on that when I can.
+- Notes: We got a few errors with this prototype, namely one just telling us to soft reboot and the other one telling us to reset our microbit and that something went wrong in Thonny's back end, it turns out thread just doesnt work.
 ## Testing and Debugging
 
 ## Evaluation
