@@ -12,8 +12,8 @@ from LilBirdy import Neopixel#Lil birdy, neopixel and biggest bird are functions
 import sys #Mainly for stopping everything if the program doesnt want to coorperate respectfully
 
 #Variables/prerequisites
-JohnButton = Pin(16, Pin.IN, Pin.PULL_DOWN)# Left Button
-JaneButton = Pin(17, Pin.IN, Pin.PULL_DOWN) # Right Button
+JohnButton = Pin(16, Pin.IN, Pin.PULL_UP)# Left Button
+JaneButton = Pin(17, Pin.IN, Pin.PULL_UP) # Right Button
 PotentialMan = ADC(Pin(26)) #Potentiometer
 HATE = PWM(Pin(18)) #Buzzer
     #Lights
@@ -51,13 +51,36 @@ SongId = 5
 - 3 = Specialist by Atlus Sound Team (Persona 4)
 - 4 = Tian Tian by Mili (Limbus Company)'''
 Conv = 182.05 #Converts analog to angle, good for potentiometer
-
+ #Notes:
+A2 = 110
+B2 =123
+b5 = 988
+g5 = 784
+e6 = 1318
+c6 = 1047
+d3 = 147
+f6 = 1397
+b4 = 494
+a3 = 220
+B1 = 62
+e5 = 659
+c4 = 262
+C3 = 131
+f5 = 698
+a4 = 440
+d6 = 1175
+d5 = 587
+a5 = 880
+e3 = 165
+d2 = 73
 
 #Functions:
 
 def Menu():
+    global SongId
     pickles.brightness(0)
-    while JohnButton == 0 and JaneButton == 0:
+    print("Menu is being ran")
+    while True:
         MAHORAGA = PotentialMan.read_u16() #Checks potentiometer until button is not pressed
         SongId = math.floor((MAHORAGA/Conv)/72) #SongId is set to rounded down version of Mahoraga if it was in angular degrees
         pickles.brightness(50)
@@ -73,6 +96,10 @@ def Menu():
             pickles.fill(suspicoussalmon) #Lorikeet shenanigans i have completed today
         else:
             sys.exit("The dev did some math wrong this isn't supposed to happen")
+        if JohnButton.value() == 0 or JaneButton.value() == 0:
+            break
+        pickles.show()
+        time.sleep(0.1)
 '''How Menu works: 
 Repeated until any button is pressed:
 - Sets variable called mahoraga to get the analog input of the potentiometer
@@ -81,12 +108,16 @@ Repeated until any button is pressed:
 
 def Song():
     global Fin
+    global MaxScore
+    print("Song is being ran")
     Fin = False
     pickles.brightness(0)
     uas.run(main())
+    uas.wait_for(Sound, 120)
+    Fin = True
     print(f"Your score is {score}/{MaxScore}!")
     while True:
-        if JohnButton == 1 or JaneButton == 1:
+        if JohnButton.value() == 1 or JaneButton.value() == 1:
             break
 '''How Song Works:
 -Sets Fin to False and Global because it is important to reset it and let song change Fin
@@ -96,17 +127,15 @@ def Song():
 -Displays score, not necessary but I thought it would be cool
 -Waits for button input before sending user back to menu'''
 
-def Sound():
-    pass
-
 async def LIGHTS():
     global JaneKneaded
     global JohnKneaded
     global Johntiming
     global Janetiming
+    print("LIGHTS")
     while Fin == False:
-        Johntiming = []
-        Janetiming = []
+        Johntiming = [0]
+        Janetiming = [0]
         if JohnGeen.value() == 1: #Order of the if statements in this line and below is non-negotiable because if we arrange it any other way, when say a yellow light is checked and the note goes to green, if we then check green, the previous note from the yellow will interfere with the check.
             Johntiming.append(0)
             JohnGeen.value(0)
@@ -152,8 +181,9 @@ async def CAMERA(): #Sensor
 
 async def ACTION(): #Button
     global corner
+    print("ACTION!")
     while Fin == False:
-        if JohnButton.value == 1:
+        if JohnButton.value() == 0:
             if max(Johntiming) == 0: #max returns the highest value from a list
                 corner = 0
             elif max(Johntiming) == 1:
@@ -165,9 +195,9 @@ async def ACTION(): #Button
                 score += 2
                 JohnGeen.value(0)
             else:
-                print("The developer is a numpty this isnt supposed to happen")
+                print("The developer is a numpty this isnt supposed to happen, John Button is the issue")
                 sys.exit()
-        if JaneButton.value == 1:
+        if JaneButton.value() == 0:
             if max(Janetiming) == 0:
                 corner = 0
             elif max(Janetiming) == 1:
@@ -179,9 +209,9 @@ async def ACTION(): #Button
                 score += 2
                 JaneGeen.value(0)
             else:
-                print("The developer is a numpty this isnt supposed to happen")
+                print("The developer is a numpty this isnt supposed to happen, Janebutton is the issue")
                 sys.exit()        
-        uas.run(WORSELIGHTS())
+        await WORSELIGHTS()
         await uas.sleep(0.1)
 '''How ACTION works:
 -sets corner, the variable that tracks what state the corner lights should be, to global
@@ -190,7 +220,535 @@ then, while fin, the variable that tracks whether the song is finished or not, i
 -repeat for right button
 -Run the Worselights function'''
 
+async def Sound(RingNursefatherOutis, buzzer, MODS):
+  global JohnKneaded
+  global MaxScore
+  global JaneKneaded
+  if RingNursefatherOutis == 0:
+        buzzer.duty_u16(1000)
+        buzzer.freq(B2) #Bar 1
+        await uas.sleep(0.26 + MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS) #Bar 2
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        buzzer.freq(B1)
+        await uas.sleep(0.26+ MODS)
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(d3)
+        await uas.sleep(0.39+ MODS) #Bar 3
+        buzzer.freq(d2)
+        await uas.sleep(0.26+ MODS)
+        buzzer.freq(d3)
+        await uas.sleep(0.26+ MODS)
+        buzzer.freq(d2)
+        await uas.sleep(0.26+ MODS) #Bar 4
+        buzzer.freq(d3)
+        await uas.sleep(0.26+ MODS)
+        buzzer.freq(d2)
+        await uas.sleep(0.26+ MODS)  
+        buzzer.freq(d3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(e3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(d3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.39+ MODS) #Bar 5
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(c4)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.26+ MODS) #Bar 6
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(c4)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.26+ MODS) #Bar 7
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS) #Bar 8
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(B2)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(e3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(d3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(B2)
+        await uas.sleep(0.39+ MODS) #Bar 9
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS)  
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS) #Bar 10
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(e3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(d3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.26+ MODS) #Bar 11
+        buzzer.freq(d3)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(B2)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(d3)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(B2)
+        await uas.sleep(0.13+ MODS) #Bar 12
+        buzzer.freq(d3)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(B2)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(d3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(a3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(d3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.39+ MODS) #Bar 13
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05+ MODS)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(a3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.39+ MODS) #Bar 14
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.26+ MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(a3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(C3)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(B2)
+        JohnKneaded = True
+        await uas.sleep(0.39+ MODS) #Bar 15
+        JaneKneaded = True
+        JohnKneaded = True
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS)
+        JaneKneaded = True
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        JohnKneaded = True
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        await uas.sleep(0.13+ MODS)
+        buzzer.freq(A2)
+        await uas.sleep(0.13+ MODS) #Bar 16
+        JaneKneaded = True
+        buzzer.freq(B2)
+        await uas.sleep(0.26+ MODS)
+        JohnKneaded = True
+        buzzer.duty_u16(0)  
+        await uas.sleep(0.26+ MODS)
+        JaneKneaded = True
+        buzzer.duty_u16(1000)
+        buzzer.freq(f5)
+        MaxScore += 2
+        await uas.sleep(0.13 +MODS)
+        buzzer.freq(a5)
+        MaxScore += 2
+        await uas.sleep(0.13+MODS)
+        JohnKneaded = True
+        buzzer.duty_u16(0)
+        await uas.sleep(0.13 +MODS)
+        JaneKneaded = True
+        buzzer.duty_u16(1000)
+        buzzer.freq(b5)
+        MaxScore += 2
+        await uas.sleep(0.39+ MODS) #Bar 17
+        JohnKneaded = True #11
+        buzzer.freq(f5)
+        MaxScore += 2
+        await uas.sleep(0.26+MODS)
+        JaneKneaded = True
+        buzzer.freq(e5)
+        MaxScore+= 2
+        await uas.sleep(0.26 + MODS)
+        JohnKneaded = True
+        buzzer.freq(d5)
+        MaxScore += 2
+        await uas.sleep(0.13 +MODS) #Bar 18
+        JaneKneaded = True
+        await uas.sleep(0.13 +MODS)
+        MaxScore += 2
+        JohnKneaded = True #15
+        buzzer.freq(e5)
+        await uas.sleep(0.26 + MODS)
+        MaxScore += 2
+        buzzer.freq(d5)
+        await uas.sleep(0.26 +MODS)
+        MaxScore += 2
+        buzzer.freq(d6)
+        await uas.sleep(0.13 + MODS)
+        MaxScore += 2
+        buzzer.freq(a5)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(1000)
+        buzzer.freq(b5) #11
+        MaxScore += 2
+        await uas.sleep(0.39 + MODS) #Bar 19
+        JaneKneaded = True
+        buzzer.freq(f5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        JohnKneaded = True
+        await uas.sleep(0.13 + MODS)
+        JaneKneaded = True
+        buzzer.freq(e5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        JohnKneaded = True
+        await uas.sleep(0.13 + MODS)
+        buzzer.freq(d5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        buzzer.freq(f5) #15
+        MaxScore += 2
+        await uas.sleep(0.26 + MODS) #Bar 20
+        JaneKneaded = True #20
+        await uas.sleep(0.13 + MODS)
+        JohnKneaded = True
+        await uas.sleep(0.26 + MODS)
+        JaneKneaded = True
+        buzzer.duty_u16(0)#Bar 21
+        await uas.sleep(0.39 + MODS)
+        JohnKneaded = True
+        await uas.sleep(0.13 + MODS)
+        await uas.sleep(0.13+ MODS)
+        JaneKneaded = True
+        buzzer.duty_u16(1000)
+        buzzer.freq(f5)
+        MaxScore += 2
+        await uas.sleep(0.26 + MODS)
+        buzzer.freq(e5)
+        MaxScore +=2
+        await uas.sleep(0.13 + MODS)
+        buzzer.freq(d5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(1000)
+        MaxScore += 2
+        buzzer.freq(e5)
+        await uas.sleep(0.13 + MODS) #Bar 22
+        buzzer.duty_u16(0)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(1000)
+        buzzer.freq(a4) #20
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        MaxScore +=2
+        await uas.sleep(0.13 + MODS)
+        buzzer.freq(a5)
+        MaxScore += 2
+        await uas.sleep(0.39 + MODS)
+        JohnKneaded = True #25
+        buzzer.freq(g5)
+        MaxScore +=2
+        await uas.sleep(0.13 + MODS) #Bar 23
+        JaneKneaded = True
+        await uas.sleep(0.13 + MODS)
+        buzzer.freq(f5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS) #Bar 24
+        JohnKneaded = True
+        await uas.sleep(0.39 + MODS)
+        JaneKneaded = True
+        await uas.sleep(0.26)
+        JohnKneaded = True
+        await uas.sleep(0.26)
+        JaneKneaded = True #30
+        buzzer.duty_u16(0)
+        await uas.sleep(0.26 + MODS)
+        JohnKneaded = True
+        await uas.sleep(0.26 + MODS)
+        JaneKneaded = True
+        buzzer.duty_u16(1000) # 25
+        MaxScore += 2
+        await uas.sleep(0.13 +MODS)
+        buzzer.freq(a5)
+        MaxScore += 2
+        await uas.sleep(0.13+MODS)
+        JohnKneaded = True
+        buzzer.duty_u16(0)
+        await uas.sleep(0.13 +MODS)
+        JaneKneaded = True
+        buzzer.duty_u16(1000)
+        buzzer.freq(b5)
+        MaxScore += 2
+        await uas.sleep(0.26+ MODS)
+        JohnKneaded = True # 35
+        await uas.sleep(0.13 + MODS)#Bar 25
+        buzzer.freq(f5)
+        MaxScore += 2
+        await uas.sleep(0.26+MODS)
+        JaneKneaded = True
+        buzzer.freq(e5)
+        MaxScore+= 2
+        await uas.sleep(0.26 + MODS)
+        JohnKneaded = True
+        buzzer.freq(d5) #30
+        MaxScore += 2
+        await uas.sleep(0.13 +MODS) #Bar 26
+        await uas.sleep(0.13 +MODS)
+        JaneKneaded = True
+        MaxScore += 2
+        buzzer.freq(e5)
+        await uas.sleep(0.13 + MODS)
+        JohnKneaded = True
+        await uas.sleep(0.13 + MODS)
+        MaxScore += 2
+        buzzer.freq(d5)
+        await uas.sleep(0.26 +MODS)
+        MaxScore += 2
+        buzzer.freq(d6)
+        await uas.sleep(0.13 + MODS)
+        MaxScore += 2
+        buzzer.freq(a5)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(1000)
+        buzzer.freq(b5) #35
+        MaxScore += 2
+        await uas.sleep(0.39 + MODS) #Bar 27
+        buzzer.freq(f5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        JaneKneaded = True #40
+        await uas.sleep(0.13 + MODS)
+        buzzer.freq(e5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        JohnKneaded = True
+        await uas.sleep(0.13 + MODS)
+        JaneKneaded = True
+        buzzer.freq(d5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        JohnKneaded = True
+        buzzer.freq(f5)
+        MaxScore += 2
+        await uas.sleep(0.13) #Bar 28
+        await uas.sleep(0.26) #Bar 29
+        JaneKneaded = True
+        await uas.sleep(0.26)
+        JohnKneaded = True #45
+        await uas.sleep(0.13 + MODS)
+        JaneKneaded = True
+        await uas.sleep(0.26)
+        JohnKneaded = True
+        await uas.sleep(0.13)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(1000)
+        buzzer.freq(f5) #40
+        MaxScore += 2
+        await uas.sleep(0.26 + MODS)
+        buzzer.freq(e5)
+        MaxScore +=2
+        await uas.sleep(0.13 + MODS)
+        buzzer.freq(d5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(1000)
+        buzzer.freq(e5)
+        MaxScore += 2
+        await uas.sleep(0.39 + MODS) #Bar 30
+        MaxScore += 2
+        buzzer.freq(d5)
+        await uas.sleep(0.26 + MODS)
+        buzzer.freq(a4) #45
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        MaxScore += 2
+        await uas.sleep(0.26 + MODS)
+        buzzer.freq(b4)
+        MaxScore +=2
+        await uas.sleep(0.26 + MODS) #Bar 31
+        JaneKneaded = True
+        await uas.sleep(0.26)
+        JohnKneaded = True
+        await uas.sleep(0.13)
+        JaneKneaded = True #50
+        buzzer.duty_u16(0)
+        await uas.sleep(0.26 + MODS) #Bar 32
+        JohnKneaded = True
+        await uas.sleep(0.26)
+        await uas.sleep(0.13)#Bar 33
+        JaneKneaded = True
+        await uas.sleep(0.26 + MODS)
+        JohnKneaded = True
+        await uas.sleep(0.13)
+        JaneKneaded = True
+        await uas.sleep(0.26)
+        JohnKneaded = True
+        await uas.sleep(0.26)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(1000)
+        buzzer.freq(f6)
+        MaxScore += 2
+        await uas.sleep(0.26 + MODS)
+        buzzer.freq(e6)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        buzzer.freq(d5) #50
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(1000)
+        buzzer.freq(e6)
+        MaxScore += 2
+        await uas.sleep(0.39 + MODS) #Bar 34
+        buzzer.freq(d6)
+        MaxScore += 2
+        await uas.sleep(0.26 + MODS)
+        buzzer.freq(a5)
+        MaxScore += 2
+        await uas.sleep(0.13 + MODS)
+        buzzer.duty_u16(0)
+        await uas.sleep(0.05)
+        buzzer.duty_u16(1000)
+        MaxScore += 2
+        await uas.sleep(0.26 + MODS)
+        buzzer.freq(b5)
+        MaxScore += 2
+        await uas.sleep(0.65 + MODS) #Bar 35
+        buzzer.duty_u16(0)
+        await uas.sleep(0.52 + MODS) #Bar 36
+        await uas.sleep(1.04 + MODS)
+  else:
+        print("The devs haven't made a song for that yet!")
+        sys.exit()      
+'''How Sound() works:
+-Okay so you're thinking Liam and Oliver why is there so much code and why is it all yellow?
+- So this manages the buzzer section of the song, and is in a seperate file because I don't like my code being dragged down by this disgrace.
+- It might look scary but it's mostly just repeating things.
+- Firstly, the Middle Nursefather Outis is just a placeholder for song id because it's in a seperate file, and is used in the if statement to change the song based on the id
+- If the song is the first song, it will play raise up your bat, which is the main crime in this here court.
+- The buzzer.freq plays the note in the bracket
+- uas.sleep() just tells it to stop by a set value (0.26 seconds for crochets, 0.13 for semiquavers, 0.05 to get a distinction between notes of the same pitch), added to the value influenced by the temperature called "MODS".
+- buzzer.duty_u16 sets the volume of the buzzer, either 1000 for normal or 0 for off
+- MaxScore is just increasing the maximum score possible'''
+
+
 async def WORSELIGHTS(): #Corner Lights
+    global corner
     pickles.brightness(50)
     if corner == 0:
         pickles.fill(rebt)
@@ -199,8 +757,9 @@ async def WORSELIGHTS(): #Corner Lights
     elif corner == 2:
         pickles.fill(geen)
     else:
-        print("The developer is a numpty this isnt supposed to happen")
+        print("The developer is a numpty this isnt supposed to happen, Worselights is the issue")
         sys.exit()
+    pickles.show()
     corner = 3 #3= placeholder value
     await uas.sleep(1)
     pickles.brightness(0)
@@ -210,14 +769,20 @@ async def WORSELIGHTS(): #Corner Lights
 -Set corner to 3, the placeholder value
 -Wait 1 second
 -Set the lorikeets brightness to 0'''
-#Main Stuff:
 async def main():
     uas.create_task(LIGHTS())
     uas.create_task(CAMERA())
     uas.create_task(ACTION())
+    uas.create_task(Sound(SongId, HATE, mod))
+    await uas.sleep(10)
+
+#Main Stuff:
+
 while True:
     Menu()
     Song()
 ''' How this works:
-setting a thread for the function that checks whether the button was released or not and then
 Just a while loop that runs the menu and then the song. Not much else'''
+
+
+
