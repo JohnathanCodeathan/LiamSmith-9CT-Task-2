@@ -12,8 +12,8 @@ from LilBirdy import Neopixel#Lil birdy, neopixel and biggest bird are functions
 import sys #Mainly for stopping everything if the program doesnt want to coorperate respectfully
 
 #Variables/prerequisites
-JohnButton = Pin(16, Pin.IN, Pin.PULL_UP)# Left Button
-JaneButton = Pin(17, Pin.IN, Pin.PULL_UP) # Right Button
+JohnButton = Pin(17, Pin.IN, Pin.PULL_UP)# Left Button
+JaneButton = Pin(16, Pin.IN, Pin.PULL_UP) # Right Button
 PotentialMan = ADC(Pin(26)) #Potentiometer
 HATE = PWM(Pin(18)) #Buzzer
     #Lights
@@ -107,14 +107,10 @@ Repeated until any button is pressed:
 - Lights up a different coloured light on the lorikeet for UX'''
 
 def Song():
-    global Fin
     global MaxScore
     print("Song is being ran")
-    Fin = False
     pickles.brightness(0)
     uas.run(main())
-    uas.wait_for(Sound, 120)
-    Fin = True
     print(f"Your score is {score}/{MaxScore}!")
     while True:
         if JohnButton.value() == 1 or JaneButton.value() == 1:
@@ -141,12 +137,12 @@ async def LIGHTS():
             JohnGeen.value(0)
         if JohnMellow.value() == 1:
             Johntiming.append(2)
-            JohnMellow.value(0)
             JohnGeen.value(1)
+            JohnMellow.value(0)
         if JohnRebt.value() == 1:
             Johntiming.append(1)
-            JohnMellow.value(1)
             JohnRebt.value(0)
+            JohnMellow.value(1)
         if JohnKneaded == True:
             JohnRebt.value(1)
             JohnKneaded = False           
@@ -177,10 +173,26 @@ Repeated until the level is finished:
 - If the left red light is on, add 1 to the list of timing values of the left side, turn off the left red light and turn on the right yellow light
 - Repeat for the right red light'''
 async def CAMERA(): #Sensor
-    pass
-
+    adc = ADC(0)
+    while True:
+         # Read ADC0 as a decimal number
+         read = adc.read_u16()
+         # Calculate voltage
+         voltage = read * 3.3 / 65536
+         # Conversion from voltage to temperature
+         temperature = ((voltage / 3.3) * 10000) / (1 - (voltage / 3.3))
+         temperature = 1 / ((1 / 298.15) + (1 / 3950) * math.log(temperature / 10000))
+         temperature = temperature - 273.15
+         # change mod
+         fever = temperature
+         if fever >= 20:
+             mod = 1
+         if mod == 1:
+             print("Fever mode active!")
+    sleep(1)
 async def ACTION(): #Button
     global corner
+    global score
     print("ACTION!")
     while Fin == False:
         if JohnButton.value() == 0:
@@ -211,7 +223,7 @@ async def ACTION(): #Button
             else:
                 print("The developer is a numpty this isnt supposed to happen, Janebutton is the issue")
                 sys.exit()        
-        await WORSELIGHTS()
+        uas.create_task(WORSELIGHTS())
         await uas.sleep(0.1)
 '''How ACTION works:
 -sets corner, the variable that tracks what state the corner lights should be, to global
@@ -224,6 +236,7 @@ async def Sound(RingNursefatherOutis, buzzer, MODS):
   global JohnKneaded
   global MaxScore
   global JaneKneaded
+  MaxScore = 0
   if RingNursefatherOutis == 0:
         buzzer.duty_u16(1000)
         buzzer.freq(B2) #Bar 1
@@ -756,13 +769,16 @@ async def WORSELIGHTS(): #Corner Lights
         pickles.fill(mellow)
     elif corner == 2:
         pickles.fill(geen)
-    else:
+    elif corner == 3:
+        return
+    else:                     
         print("The developer is a numpty this isnt supposed to happen, Worselights is the issue")
         sys.exit()
     pickles.show()
     corner = 3 #3= placeholder value
-    await uas.sleep(1)
-    pickles.brightness(0)
+    await uas.sleep(0.05)
+    pickles.fill((0,0,0))
+    pickles.show()
 '''How WORSELIGHTS works:
 -sets the brightness of the lorikeet to 50%
 -if corner = 0, turn the lorikeet leds red. If corner = 1, turn the lorikeet leds yellow. If corner =2, turn the lorikeet leds green. If corner = anything else, turn off program
@@ -770,11 +786,13 @@ async def WORSELIGHTS(): #Corner Lights
 -Wait 1 second
 -Set the lorikeets brightness to 0'''
 async def main():
+    global Fin
+    Fin = False
     uas.create_task(LIGHTS())
     uas.create_task(CAMERA())
     uas.create_task(ACTION())
-    uas.create_task(Sound(SongId, HATE, mod))
-    await uas.sleep(10)
+    await Sound(SongId, HATE, mod)
+    Fin = True
 
 #Main Stuff:
 
@@ -783,6 +801,3 @@ while True:
     Song()
 ''' How this works:
 Just a while loop that runs the menu and then the song. Not much else'''
-
-
-
