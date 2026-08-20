@@ -201,11 +201,9 @@ async def ACTION(): #Button
             elif max(Johntiming) == 1:
                 corner = 1
                 score += 1
-                JohnMellow.value(0)
             elif max(Johntiming) == 2:
                 corner = 2
                 score += 2
-                JohnGeen.value(0)
             else:
                 print("The developer is a numpty this isnt supposed to happen, John Button is the issue")
                 sys.exit()
@@ -215,11 +213,9 @@ async def ACTION(): #Button
             elif max(Janetiming) == 1:
                 corner = 1
                 score += 1
-                JaneMellow.value(0)
             elif max(Janetiming) == 2:
                 corner = 2
                 score += 2
-                JaneGeen.value(0)
             else:
                 print("The developer is a numpty this isnt supposed to happen, Janebutton is the issue")
                 sys.exit()        
