@@ -17,14 +17,14 @@ With all that said,  instead  of turning to the iPad,  they can use our product,
 - If the button is not pressed when the note passes the bottom lights, the seperate red light illuminates itself.
 
 ### Functional Requirements:
-- Potentiometer input: Used to select from the song options able to be played.  By dividing the potentiometer into sections of (360/[amount of songs) degrees, the user can turn the potentiometer into those sections and a different coloured light bulb will light up.
+- Potentiometer input: Used to select from the song options able to be played.  By dividing the potentiometer into sections of (360/(amount of songs)) degrees, the user can turn the potentiometer into those sections and a different coloured light bulb will light up.
 - Light output in menu: Once the potentiometer has reached a specific section, the corresponding light bulb will light up. These bulbs will be located in the top corner of the breadboard.
 - Menu button input: Once the user has decided on their song, they can press either of the two buttons on the bottom of the breadboard to start the level.
 - Buzzer output: Once the level begins, the buzzer will play the selected song.
 - Light output in level: There will be a 2 light wide column somewhere in the middle of the breadboard with two buttons below the bottom two bulbs. When a note is required,  one of the two lights at the top of the column will light up before player input is needed. Then that top light will turn off and the light below it will turn on, and this will be repeated at an interval of 0.5 seconds until this light reaches the bottom and the buzzer plays the corresponding note of the song. 
 - Button input in level: The player will then be required to press the button below the section of the column that has the note lit up before it disappears. If they do so successfully, a value of 2 will be added to their score, and one of the green lights in the corner will light up for a short time for user experience. If the user presses the button slightly too early or late, a value of 1 will be added to their score, and one of the yellow lights in the corner will light up for a short time for user experience. However, if the user either doesn't press the button in time at all, or presses it way too early, no value will be added to the score, but a red light in the corner will light up for user experience.
 - Speed sensor: Once the level begins, if the sensor detects the users hands moving fast enough, the interval of which notes move speeds up, along with the song. Conversely, if the users hands are moving slow enough, the speed of the notes and song will slow down.
-- Digital Output (???): At the end of and throughout the level, the users score will be displayed on the computer as a fraction of score/maximum possible score.
+- Digital Output: At the end of and throughout the level, the users score will be displayed on the computer as a fraction of score/maximum possible score.
 
 ### Test Cases:
 | Test Case | Input | Expected Output |
@@ -450,7 +450,60 @@ while True:
 setting a thread for the function that checks whether the button was released or not and then
 Just a while loop that runs the menu and then the song. Not much else'''
 ```
-- Notes: We got a few errors with this prototype, namely one just telling us to soft reboot and the other one telling us to reset our microbit and that something went wrong in Thonny's back end, it turns out thread just doesnt work.
+- Notes: We got a few errors with this prototype, namely one just telling us to soft reboot and the other one telling us to reset our microbit and that something went wrong in Thonny's back end, it turns out thread just doesnt work, ended up using uasyncio.
 ## Testing and Debugging
 
+### Test Cases 2: Electric Boogaloo:
+| Test Case | Input | Expected Output | Evaluation |
+| --------- | ----- | --------------- | ---------- |
+| User turns potentiometer | User rotates the potentiometer to the desired section | Corresponding coloured light bulb will light up | We somewhat followed this because we have the core idea intact and the potentiometer, but switched the corner lights to lorikeet to allow for rgb corner lights, especially in menu, which we preferred for user experience. This ended up making this test case even better. However, the colours could be improved to be more accurate, because we ripped the rgb codes straight from a colour picker and didn't consider how they would translate, and ended up with 2 shades of white and 2 shades of pink. |
+| User presses button in menu phase | User presses button when they have chosen their song with the potentiometer in the menu phase | The corresponding song and level will play | I think we ended up doing somewhat successfully within this section. This is because we ended up meeting the criteria mentioned here, but halfway through, we tried adding a function that only registers button inputs when the button is released, instead of just pressed, to prevent potential bugs, but that ended up messing with the program, so it got cut. I don't know where else to put this except for the button place, and that function did affect all button functions, so that's why this evaluation is only somewhat successful. Other than that, it's perfect. |
+| User presses button perfectly on time | User presses the button while the light directly above it is lit up | Score will be increased by 2 and green light in the corner will light up for 1 second. | We completed this test case somewhat successfully, because we have met most of the criteria listed here, where when the button is pressed with a green light on, the user gets 2 points and the light in the corner will flash green for a second. However, we switched that one second to 0.1 seconds because 1 second is too long for the rest of the program. Furthermore, an area that was particularly challenging was when the lights in the left side stopped working, and we figured out that it was a wiring program. Moreover, one area that could be improved upon is that when the buzzer got to a particularly fast part, all the lights were on, and the user can't see much movement, because it looked like it was frozen. To fix this, we could make the lights turn off for a fraction of a second to show the user that they are moving. |
+| User presses button almost on time | User presses button while the note is in between 1 second too early and 1 second too late but not perfectly on time | Score will increase by 1 and yellow light in corner will light up for 1 second | Within this area, we implemented the test case somewhat successfully, for the same reasons as mentioned in the green light area. Furthermore, another roadblock that we ran into was that the lights would disappear and go off randomly when the song was played, where we found that a script that was supposed to turn off the light when the button was pressed (to prevent cheating) to be the issue, where it was promptly removed. But once we got that downpat, we enjoyed watching our creation come together, and that joy was one thing that went particularly well.  |
+| User doesn't press button on time at all | User presses button while there is note within the pressable range of 1 second too early and 1 second too late, or the user doesn't press the button at all when the note passes by | Score will stay the same and the red light in the corner will light up for 1 second | In this test case, its completion went somewhat successfully, due to the same reasons as the yellow and red light test case evaluations. There is not much else I think I can put here, so I'll leave it at that. |
+| User's hands are moving fast | The users hands are moving at a rather quick speed | Song and time between notes moving down increases in speed | This testcase went a little successfully. This is because the latter half of the criteria is correct, with the notes increasing on speed at a certain condition. However, we couldn't use a hand speed sensor, because we couldn't locate a sensor that would be able to measure the speed of an external object at every second, so we utilised a temperature sensor instead. Other than that, it went pretty well, because we didn't experience any major hiccoughs. However, the accuracy of the temperature sensor could be improved because it was giving slightly different results in consecutive song play throughs, meaning that a user who had a room temperature near the threshold, would experience both the normal and quick version. |
+| User's hands are moving slow | The users hands are moving at a rather sluggish speed | Song and time between notes moving down decreases in speed. | This testcase went poorly, because we had to use a temperature sensor, due to a lack of sensors that detect the speed of an external object. However, when we tested this feature in a cold environment, the experience was not enjoyable to play or test, due to the notes being rather sluggish no matter which way you slice it, so it was scrapped. |
+
+### Final Product:
+> Do refer to the video attached to the Google Classroom
+
 ## Evaluation
+
+### PMI CHART
+
+| Name | Positive | Minus | Implication | Ranking | 
+| ---- | -------- | ----- | ----------- | ------- | 
+| Quade West | The song is very nice, and the thing actually works | The lights dont sync up with the song very well, and the song is quite short. also very easy to grind up score | Make the lights sync with the songs, fix score | 6/10 | 
+| Oliver Van Raalte | It works functionally, the song slaps, and it is engaging | Scoring is wacky, and the lights arent very consistent | The machine is very good, but has some problems that should be dealt with. Fix the lights, and scoring | 7/10 |
+
+### The Final Evaluation.
+**Functional Requirements**
+
+We managed to execute our functional requirements somewhat effectively. This is because, for the most part, our project closely matched the functional requirements, and follows along with the criteria, especially for the lights, button, and menu parts. However, there are some differences. These differences consist of: using a temperature sensor instead of a speed sensor due to a lack of a speed sensor, using a lorikeet instead of leds for the corner lights in the name of user experience, not having all 5 songs because mapping the songs is ridiculously repetitive and time consuming, and we didn't have time, and we didn't print the score throughout, because we just forgot. And that's why we managed to execute our functional requirements only somewhat effectively.
+
+**Non-Functional Requirements**
+
+We managed to somewhat achieve our Non-Functional Requirements. This is because we managed to develop the button to react in 0.1 seconds, the potentiometer instantly, and the normal lights within 0.5 seconds. However, the lorikeet reacts within 0.1 seconds to enhance User Experience and not crowd the lorikeet with requests, and the sensor is only checked once because checking the temperature multiple times per play is rather unnecessary. Going off the Non-functional requirements like a checklist, we managed to achieve most of them, but not all of them, leading to us somewhat achieving our Non-Functional Requirements.
+
+**Our Identified Need**
+
+In relation to our identified need, we managed to moderately meet it. This is because our general need has been met in theory, with there being a song to listen to and a rhythm game to play, which will boost hand eye coordination, reaction speed, memory, sense of rhythm and multitasking skills, while also keeping interactive and fun elements, like music, to keep them entertained. However, there is only one song, and that song is rather short, which will be unappealing towards a child, leading to the toy not lasting long among the child, and they all will return to their iPads. But it did achieve it's goal, if only for a short while. And that's why we managed to moderately meet our identified need.
+
+**Project Management**
+
+In relation to project management, we horrendously failed to achieve some semblance of project management. This is because we only managed to finish the code, circuit, and evaluations within the final week, and procrastinated alot. This led to our songs not being complete, and our code being somewhat buggy. Furthermore, Oliver and I didn't communicate nearly enough, leading to us having discrepancies in our ideas on how the final project would look, and our idea was just simply too big to feasibly pull off within the time span we had. However, despite it all, we managed to make a finished product, even if our project management was simply abhorrent.
+
+**Peer Feedback**
+
+In relation to the peer feedback we have collected, we did somewhat effectively. This is because both Quade and Oliver enjoyed our song choices, the entertainment value, and the impressiveness of an idea like this given tangible form. However, the scoring system was a little off, with them both achieving scores above the max score, and the lights being slightly off sync. And that's why in relation to our peer feedback, we did somewhat effectively.
+
+**Potential Improvements:** 
+
+1. Fix the scoring system: This was mentioned in our peer feedback, and is a glaring issue. To fix this, we could add a function to check whether the button has been released, instead of pressed, which registers every frame, causing the overscoring.
+2. Add more songs: This will give the menu an actual use, and increase the enjoyment and amount of time the toy has been used, by adding more content.
+3. Increase the accuracy of the temperature sensor: This will prevent children from getting confused when their Rhythminator5000 is considerably quicker, even if it's in a cool environment.
+4. Sync up the lights in the song: To do this, we will have to adjust the timing of when JohnKneaded and JaneKneaded become true in the program, and turn the lights off and on for a small amount of time every tick to show that the lights are actually moving.
+
+**Generative AI Statement**
+
+I have decided to improve this to keep track of how much I've used it, because I don't like having to use it, it has been referneced a few times and this will show that most of the program was by us. We have only sparingly used Generative AI as a last resort to only identify where the program could be improved and what's caused the error, only when it's late at night, we've asked others around us, and have triple checked the code and circuit for any errors and still can't identify it. Thank you for reading :D
